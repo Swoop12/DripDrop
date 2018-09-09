@@ -9,18 +9,18 @@
 import UIKit
 import CoreLocation
 
-class WeatherViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate{
+class WeatherViewController: UIViewController, CLLocationManagerDelegate, UICollectionViewDataSource, UICollectionViewDelegate{
     
     @IBOutlet weak var cityLabel: UILabel!
     @IBOutlet weak var summaryLabel: UILabel!
     @IBOutlet weak var tempuratureLabel: UILabel!
     @IBOutlet weak var weatherCollectionView: UICollectionView!
     
-//    var currentLocation: CLLocation?{
-//        didSet{
-//            fetchWeather()
-//        }
-//    }
+    var currentLocation: CLLocation?{
+        didSet{
+            fetchWeather()
+        }
+    }
     
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -39,13 +39,15 @@ class WeatherViewController: UIViewController, UICollectionViewDataSource, UICol
         
         weatherCollectionView.dataSource = self
         weatherCollectionView.delegate = self
-        fetchWeather()
-//        if CLLocationManager.locationServicesEnabled(){
-//            WeatherController.shared.locatioinManager.delegate = self
-//            WeatherController.shared.locatioinManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
-//        }
-//
-//        WeatherController.shared.locatioinManager.requestLocation()
+        
+        
+    WeatherController.shared.locatioinManager.requestWhenInUseAuthorization()
+        
+        if CLLocationManager.locationServicesEnabled(){
+            WeatherController.shared.locatioinManager.delegate = self
+            WeatherController.shared.locatioinManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+            WeatherController.shared.locatioinManager.startUpdatingLocation()
+        }
     }
     
     func updateCurrentWeather(){
@@ -55,10 +57,12 @@ class WeatherViewController: UIViewController, UICollectionViewDataSource, UICol
     }
     
     func fetchWeather(){
-//        guard let latitude = currentLocation?.coordinate.latitude,
-//            let longitude = currentLocation?.coordinate.longitude else {return}
         
-        WeatherController.shared.fetchWeeklyWeather(latitude: 40.7608, longitude: -111.891) { (_) in
+        
+        guard let latitude = currentLocation?.coordinate.latitude,
+            let longitude = currentLocation?.coordinate.longitude else {return}
+        
+        WeatherController.shared.fetchWeeklyWeather(latitude: latitude, longitude: longitude) { (_) in
             DispatchQueue.main.async {
                 self.weatherCollectionView.reloadData()
                 self.updateCurrentWeather()
@@ -66,7 +70,7 @@ class WeatherViewController: UIViewController, UICollectionViewDataSource, UICol
         }
     }
     
-//    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-//        currentLocation = locations.first
-//    }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        currentLocation = locations.first
+    }
 }
